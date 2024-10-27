@@ -27,7 +27,7 @@
 
 
 ## ERD
-![together_erd](https://github.com/user-attachments/assets/8299e25d-f2ac-48b8-9229-57e8509665dc)
+![Together erd](https://github.com/user-attachments/assets/f74ad631-103a-4ce2-b955-6ab0854baef6)
 
 ## Trouble Shooting
 
