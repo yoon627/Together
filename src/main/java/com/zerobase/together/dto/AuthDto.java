@@ -1,11 +1,10 @@
-package com.zerobase.together.model;
+package com.zerobase.together.dto;
 
-import com.zerobase.together.persist.entity.UserEntity;
+import com.zerobase.together.entity.UserEntity;
 import java.time.LocalDateTime;
-import java.util.List;
 import lombok.Data;
 
-public class Auth {
+public class AuthDto {
 
   @Data
   public static class SignIn {
@@ -29,9 +28,9 @@ public class Auth {
           .userId(this.userId)
           .password(this.password)
           .coupleId(this.coupleId)
-          .createdDate(this.createdDate)
-          .modifiedDate(this.modifiedDate)
-          .removedDate(this.removedDate)
+          .createdDateTime(this.createdDate)
+          .modifiedDateTime(this.modifiedDate)
+          .removedDateTime(this.removedDate)
           .build();
     }
   }
@@ -53,9 +52,9 @@ public class Auth {
           .userId(this.userId)
           .password(this.password)
           .coupleId(this.coupleId)
-          .createdDate(this.createdDate)
-          .modifiedDate(this.modifiedDate)
-          .removedDate(this.removedDate)
+          .createdDateTime(this.createdDate)
+          .modifiedDateTime(this.modifiedDate)
+          .removedDateTime(this.removedDate)
           .build();
     }
   }

@@ -1,6 +1,7 @@
-package com.zerobase.together.persist.entity;
+package com.zerobase.together.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -11,6 +12,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Builder
 @Getter
@@ -19,14 +23,17 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "couple")
+@EntityListeners(AuditingEntityListener.class)
 public class CoupleEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long coupleId;
-  private LocalDateTime createdDate;
-  private LocalDateTime modifiedDate;
-  private LocalDateTime removedDate;
+  @CreatedDate
+  private LocalDateTime createdDateTime;
+  @LastModifiedDate
+  private LocalDateTime modifiedDateTime;
+  private LocalDateTime removedDateTime;
   private boolean authorized;
 
 }

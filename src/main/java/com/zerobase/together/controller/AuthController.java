@@ -1,6 +1,6 @@
 package com.zerobase.together.controller;
 
-import com.zerobase.together.model.Auth;
+import com.zerobase.together.dto.AuthDto;
 import com.zerobase.together.security.TokenProvider;
 import com.zerobase.together.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class AuthController {
    * @return 가입된 회원의 정보
    */
   @PostMapping("/signup")
-  public ResponseEntity<?> signup(@RequestBody Auth.SignUp request) {
+  public ResponseEntity<?> signup(@RequestBody AuthDto.SignUp request) {
     var result = this.userService.register(request);
     return ResponseEntity.ok(result);
   }
@@ -39,7 +39,7 @@ public class AuthController {
    * @return 가입된 회원의 정보
    */
   @PostMapping("/signupWithPartner")
-  public ResponseEntity<?> signupWithPartner(@RequestBody Auth.SignUpWithPartner request) {
+  public ResponseEntity<?> signupWithPartner(@RequestBody AuthDto.SignUpWithPartner request) {
     var result = this.userService.registerWithPartner(request);
     return ResponseEntity.ok(result);
   }
@@ -51,9 +51,9 @@ public class AuthController {
    * @return 1시간동안 유효한 jwt 토큰
    */
   @PostMapping("/signin")
-  public ResponseEntity<?> signin(@RequestBody Auth.SignIn request) {
+  public ResponseEntity<?> signin(@RequestBody AuthDto.SignIn request) {
     var user = this.userService.authenticate(request);
-    var token = this.tokenProvider.generateToken(user.getUsername());
+    var token = this.tokenProvider.generateToken(user.getUserId());
     return ResponseEntity.ok(token);
   }
 }
