@@ -41,6 +41,6 @@ public class UserDto implements UserDetails {
 
   @Override
   public String getUsername() {
-    return "";
+    return this.userId;
   }
 }
