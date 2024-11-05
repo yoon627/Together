@@ -29,8 +29,14 @@ public class PostController {
   }
 
   @GetMapping("/read")
-  public ResponseEntity<?> readPost() {
-    var result = this.postService.readPost();
+  public ResponseEntity<?> readPost(@RequestParam Long postId) {
+    var result = this.postService.readPost(postId);
+    return ResponseEntity.ok(result);
+  }
+
+  @GetMapping("/readAll")
+  public ResponseEntity<?> readAllPosts() {
+    var result = this.postService.readAllPosts();
     return ResponseEntity.ok(result);
   }
 
