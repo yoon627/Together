@@ -25,9 +25,8 @@
 * 활동 로그 조회 기능
   * 본인과 연인관계에 있는 사람이 게시글을 작성하거나 댓글을 작성한 기록들을 조회할 수 있다.
 
-
 ## ERD
-![Together erd](https://github.com/user-attachments/assets/f74ad631-103a-4ce2-b955-6ab0854baef6)
+![together erd](https://github.com/user-attachments/assets/fa45eed4-8d76-40b2-8a0f-92dc10d02f2d)
 
 ## Trouble Shooting
 
