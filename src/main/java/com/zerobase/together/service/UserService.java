@@ -32,8 +32,8 @@ public class UserService implements UserDetailsService {
    */
   public UserDto register(AuthDto.SignUp user) {
 
-    if (this.userRepository.existsByUserId(user.getUserId())) {
-      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUserId());
+    if (this.userRepository.existsByUsername(user.getUsername())) {
+      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUsername());
     }
 
     CoupleEntity coupleEntity = coupleRepository.save(new CoupleEntity());
@@ -51,18 +51,18 @@ public class UserService implements UserDetailsService {
    * @return 저장된 회원 정보
    */
   public UserDto registerWithPartner(SignUpWithPartner user) {
-    if (this.userRepository.existsByUserId(user.getUserId())) {
-      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUserId());
+    if (this.userRepository.existsByUsername(user.getUsername())) {
+      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUsername());
     }
 
-    UserEntity partner = this.userRepository.findByUserId(user.getPartnerId())
+    UserEntity partner = this.userRepository.findByUsername(user.getPartnername())
         .orElseThrow(
-            () -> new UsernameNotFoundException("파트너가 존재하지 않습니다. -> " + user.getPartnerId()));
+            () -> new UsernameNotFoundException("파트너가 존재하지 않습니다. -> " + user.getPartnername()));
     user.setCoupleId(partner.getCoupleId());
     user.setPassword(this.passwordEncoder.encode(user.getPassword()));
 
     CoupleEntity coupleEntity = coupleRepository.findById(partner.getCoupleId())
-        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getUserId()));
+        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getCoupleId()));
     coupleEntity.setAuthorized(true);
     coupleRepository.save(coupleEntity);
 
@@ -76,7 +76,7 @@ public class UserService implements UserDetailsService {
    * @return 로그인된 회원 정보
    */
   public UserDto authenticate(AuthDto.SignIn loginUser) {
-    var user = this.userRepository.findByUserId(loginUser.getUserId())
+    var user = this.userRepository.findByUsername(loginUser.getUsername())
         .orElseThrow(() -> new RuntimeException("존재하지 않는 ID 입니다."));
 
     if (!this.passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
@@ -84,7 +84,7 @@ public class UserService implements UserDetailsService {
     }
 
     CoupleEntity coupleEntity = coupleRepository.findById(user.getCoupleId())
-        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getUserId()));
+        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getCoupleId()));
 
     if (!coupleEntity.isAuthorized()) {
       throw new RuntimeException("상대방이 가입하지 않았습니다.");
@@ -95,7 +95,7 @@ public class UserService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-    return UserDto.fromEntity(this.userRepository.findByUserId(userId)
+    return UserDto.fromEntity(this.userRepository.findByUsername(userId)
         .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다.")));
   }
 }

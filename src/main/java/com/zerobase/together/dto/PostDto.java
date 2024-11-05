@@ -19,8 +19,7 @@ public class PostDto {
   private String imgUrl;
   private String description;
 
-
-  public static PostDto toEntity(PostEntity postEntity) {
+  public static PostDto toDto(PostEntity postEntity) {
     return PostDto.builder()
         .coupleId(postEntity.getCoupleId())
         .userId(postEntity.getUserId())

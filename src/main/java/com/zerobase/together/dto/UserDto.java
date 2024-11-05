@@ -19,13 +19,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class UserDto implements UserDetails {
 
   private Long coupleId;
-  private String userId;
+  private String username;
 
 
   public static UserDto fromEntity(UserEntity userEntity) {
     return UserDto.builder()
         .coupleId(userEntity.getCoupleId())
-        .userId(userEntity.getUserId())
+        .username(userEntity.getUsername())
         .build();
   }
 
@@ -41,6 +41,6 @@ public class UserDto implements UserDetails {
 
   @Override
   public String getUsername() {
-    return this.userId;
+    return this.username;
   }
 }

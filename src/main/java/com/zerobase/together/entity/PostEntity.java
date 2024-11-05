@@ -40,5 +40,4 @@ public class PostEntity {
   private LocalDateTime createdDateTime;
   @LastModifiedDate
   private LocalDateTime modifiedDateTime;
-  private LocalDateTime removedDateTime;
 }

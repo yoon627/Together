@@ -30,13 +30,11 @@ public class UserEntity {
   private Long id;
   private Long coupleId;
   @Column(unique = true, length = 32)
-  private String userId;
+  private String username;
   @Column(length = 64)
   private String password;
   @CreatedDate
   private LocalDateTime createdDateTime;
   @LastModifiedDate
   private LocalDateTime modifiedDateTime;
-  private LocalDateTime removedDateTime;
-
 }

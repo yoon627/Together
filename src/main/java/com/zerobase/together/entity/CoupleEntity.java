@@ -33,7 +33,6 @@ public class CoupleEntity {
   private LocalDateTime createdDateTime;
   @LastModifiedDate
   private LocalDateTime modifiedDateTime;
-  private LocalDateTime removedDateTime;
   private boolean authorized;
 
 }
