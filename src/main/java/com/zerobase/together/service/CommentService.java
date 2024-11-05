@@ -1,12 +1,15 @@
 package com.zerobase.together.service;
 
 import com.zerobase.together.dto.CommentDto;
+import com.zerobase.together.dto.HistoryDto;
 import com.zerobase.together.entity.CommentEntity;
 import com.zerobase.together.entity.PostEntity;
 import com.zerobase.together.entity.UserEntity;
 import com.zerobase.together.repository.CommentRepository;
 import com.zerobase.together.repository.PostRepository;
 import com.zerobase.together.repository.UserRepository;
+import com.zerobase.together.type.HistoryAction;
+import com.zerobase.together.type.HistoryTarget;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +26,7 @@ public class CommentService {
   private final CommentRepository commentRepository;
   private final UserRepository userRepository;
   private final PostRepository postRepository;
+  private final HistoryService historyService;
 
   public CommentDto createComment(CommentDto request) {
     UserEntity user = getLoginUser();
@@ -31,12 +35,23 @@ public class CommentService {
     if (user.getCoupleId() != post.getCoupleId()) {
       throw new RuntimeException("댓글 작성 권한이 없습니다.");
     }
-    return CommentDto.toDto(this.commentRepository.save(CommentEntity.builder()
+
+    CommentEntity commentEntity = this.commentRepository.save(CommentEntity.builder()
         .postId(request.getPostId())
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .description(request.getDescription())
-        .build()));
+        .build());
+
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(commentEntity.getId())
+        .historyTarget(HistoryTarget.COMMENT)
+        .historyAction(HistoryAction.CREATE)
+        .build());
+
+    return CommentDto.toDto(commentEntity);
   }
 
   public List<CommentDto> readComments(Long postId) {
@@ -57,6 +72,15 @@ public class CommentService {
       throw new RuntimeException("댓글 수정 권한이 없습니다.");
     }
     commentEntity.setDescription(request.getDescription());
+
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(commentEntity.getId())
+        .historyTarget(HistoryTarget.COMMENT)
+        .historyAction(HistoryAction.UPDATE)
+        .build());
+
     return CommentDto.toDto(this.commentRepository.save(commentEntity));
   }
 
@@ -67,7 +91,15 @@ public class CommentService {
     if (user.getId() != commentEntity.getUserId()) {
       throw new RuntimeException("댓글 삭제 권한이 없습니다.");
     }
+
     this.commentRepository.deleteById(commentId);
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(null)
+        .historyTarget(HistoryTarget.COMMENT)
+        .historyAction(HistoryAction.DELETE)
+        .build());
   }
 
   private UserEntity getLoginUser() {

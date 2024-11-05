@@ -1,10 +1,13 @@
 package com.zerobase.together.service;
 
+import com.zerobase.together.dto.HistoryDto;
 import com.zerobase.together.dto.PostDto;
 import com.zerobase.together.entity.PostEntity;
 import com.zerobase.together.entity.UserEntity;
 import com.zerobase.together.repository.PostRepository;
 import com.zerobase.together.repository.UserRepository;
+import com.zerobase.together.type.HistoryAction;
+import com.zerobase.together.type.HistoryTarget;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,16 +23,24 @@ public class PostService {
 
   private final PostRepository postRepository;
   private final UserRepository userRepository;
+  private final HistoryService historyService;
 
   public PostDto createPost(PostDto post) {
     UserEntity user = getLoginUser();
-    return PostDto.toDto(this.postRepository.save(PostEntity.builder()
+    PostEntity postEntity = this.postRepository.save(PostEntity.builder()
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .imgUrl(post.getImgUrl())
         .description(post.getDescription())
-        .build()
-    ));
+        .build());
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(postEntity.getId())
+        .historyTarget(HistoryTarget.POST)
+        .historyAction(HistoryAction.CREATE)
+        .build());
+    return PostDto.toDto(postEntity);
   }
 
   public PostDto readPost(Long postId) {
@@ -57,6 +68,13 @@ public class PostService {
     }
     postEntity.setImgUrl(post.getImgUrl());
     postEntity.setDescription(post.getDescription());
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(postEntity.getId())
+        .historyTarget(HistoryTarget.POST)
+        .historyAction(HistoryAction.UPDATE)
+        .build());
     return PostDto.toDto(this.postRepository.save(postEntity));
   }
 
@@ -67,7 +85,15 @@ public class PostService {
     if (user.getId() != postEntity.getUserId()) {
       throw new RuntimeException("포스트 작성자가 아닙니다.");
     }
+
     this.postRepository.deleteById(postId);
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(null)
+        .historyTarget(HistoryTarget.POST)
+        .historyAction(HistoryAction.DELETE)
+        .build());
   }
 
   private UserEntity getLoginUser() {
