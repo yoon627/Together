@@ -1,5 +1,6 @@
 package com.zerobase.together.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -28,7 +29,9 @@ public class UserEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private Long coupleId;
+  @Column(unique = true, length = 32)
   private String userId;
+  @Column(length = 64)
   private String password;
   @CreatedDate
   private LocalDateTime createdDateTime;
