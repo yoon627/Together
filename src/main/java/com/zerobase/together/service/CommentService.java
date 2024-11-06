@@ -13,10 +13,14 @@ import com.zerobase.together.type.HistoryTarget;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -28,11 +32,12 @@ public class CommentService {
   private final PostRepository postRepository;
   private final HistoryService historyService;
 
+  @Transactional
   public CommentDto createComment(CommentDto request) {
     UserEntity user = getLoginUser();
-    PostEntity post = postRepository.findById(request.getPostId())
+    PostEntity postEntity = postRepository.findById(request.getPostId())
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
-    if (user.getCoupleId() != post.getCoupleId()) {
+    if (user.getCoupleId() != postEntity.getCoupleId()) {
       throw new RuntimeException("댓글 작성 권한이 없습니다.");
     }
 
@@ -47,6 +52,8 @@ public class CommentService {
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .targetId(commentEntity.getId())
+        .postContent(this.historyService.shortenContent(postEntity.getDescription()))
+        .commentContent(this.historyService.shortenContent(commentEntity.getDescription()))
         .historyTarget(HistoryTarget.COMMENT)
         .historyAction(HistoryAction.CREATE)
         .build());
@@ -54,29 +61,34 @@ public class CommentService {
     return CommentDto.toDto(commentEntity);
   }
 
-  public List<CommentDto> readComments(Long postId) {
+  public List<CommentDto> readComments(Long postId, Integer pageNum) {
     UserEntity user = getLoginUser();
     if (user.getCoupleId() != this.postRepository.findById(postId).get().getCoupleId()) {
       throw new RuntimeException("댓글 조회 권한이 없습니다.");
     }
-    return this.commentRepository.getCommentEntitiesByPostId(postId).stream()
-        .map(CommentDto::toDto)
-        .toList();
+    Pageable pageable = PageRequest.of(pageNum, 10);
+    Page<CommentEntity> result = this.commentRepository.findAllByPostIdOrderByCreatedDateTimeDesc(
+        postId, pageable);
+    return result.stream().map(CommentDto::toDto).toList();
   }
 
-  public CommentDto updateComment(Long commentId, CommentDto request) {
+  @Transactional
+  public CommentDto updateComment(CommentDto request) {
     UserEntity user = getLoginUser();
-    CommentEntity commentEntity = this.commentRepository.findById(commentId)
+    CommentEntity commentEntity = this.commentRepository.findById(request.getCommentId())
         .orElseThrow(() -> new RuntimeException("해당 댓글이 존재하지 않습니다."));
     if (user.getId() != commentEntity.getUserId()) {
       throw new RuntimeException("댓글 수정 권한이 없습니다.");
     }
     commentEntity.setDescription(request.getDescription());
-
+    PostEntity postEntity = this.postRepository.findById(commentEntity.getPostId())
+        .orElseThrow(() -> new RuntimeException("해당 게시물이 존재하지 않습니다."));
     this.historyService.createHistory(HistoryDto.builder()
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .targetId(commentEntity.getId())
+        .postContent(historyService.shortenContent(postEntity.getDescription()))
+        .commentContent(historyService.shortenContent(commentEntity.getDescription()))
         .historyTarget(HistoryTarget.COMMENT)
         .historyAction(HistoryAction.UPDATE)
         .build());
@@ -84,6 +96,7 @@ public class CommentService {
     return CommentDto.toDto(this.commentRepository.save(commentEntity));
   }
 
+  @Transactional
   public void deleteComment(Long commentId) {
     UserEntity user = getLoginUser();
     CommentEntity commentEntity = this.commentRepository.findById(commentId)
@@ -93,13 +106,7 @@ public class CommentService {
     }
 
     this.commentRepository.deleteById(commentId);
-    this.historyService.createHistory(HistoryDto.builder()
-        .coupleId(user.getCoupleId())
-        .userId(user.getId())
-        .targetId(null)
-        .historyTarget(HistoryTarget.COMMENT)
-        .historyAction(HistoryAction.DELETE)
-        .build());
+    this.historyService.deleteHistory(HistoryTarget.COMMENT, commentId);
   }
 
   private UserEntity getLoginUser() {

@@ -7,42 +7,39 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/comment")
 @RequiredArgsConstructor
 public class CommentController {
 
   private final CommentService commentService;
 
-  @PostMapping("/create")
+  @PostMapping("/comment")
   public ResponseEntity<?> createComment(@RequestBody CommentDto request) {
     var result = this.commentService.createComment(request);
     return ResponseEntity.ok(result);
   }
 
-  @GetMapping("/read")
-  public ResponseEntity<?> readComments(@RequestParam Long postId) {
-    var result = this.commentService.readComments(postId);
+  @GetMapping("/comments/{postId}/{pageNum}")
+  public ResponseEntity<?> readComments(@PathVariable Long postId, @PathVariable Integer pageNum) {
+    var result = this.commentService.readComments(postId, pageNum);
     return ResponseEntity.ok(result);
   }
 
-  @PutMapping("/update")
-  public ResponseEntity<?> updateComment(@RequestParam Long commentId,
-      @RequestBody CommentDto request) {
-    var result = this.commentService.updateComment(commentId, request);
+  @PutMapping("/comment")
+  public ResponseEntity<?> updateComment(@RequestBody CommentDto request) {
+    var result = this.commentService.updateComment(request);
     return ResponseEntity.ok(result);
   }
 
-  @DeleteMapping("/delete")
-  public void deleteComment(@RequestParam Long commentId) {
+  @DeleteMapping("/comment/{commentId}")
+  public void deleteComment(@PathVariable Long commentId) {
     this.commentService.deleteComment(commentId);
   }
 

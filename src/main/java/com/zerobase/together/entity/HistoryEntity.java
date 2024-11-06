@@ -2,6 +2,7 @@ package com.zerobase.together.entity;
 
 import com.zerobase.together.type.HistoryAction;
 import com.zerobase.together.type.HistoryTarget;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
@@ -39,6 +40,10 @@ public class HistoryEntity {
   private HistoryTarget historyTarget;
   @Enumerated(EnumType.STRING)
   private HistoryAction historyAction;
+  @Column(columnDefinition = "TEXT")
+  private String postContent;
+  @Column(columnDefinition = "TEXT")
+  private String commentContent;
   @CreatedDate
   private LocalDateTime createdDateTime;
 

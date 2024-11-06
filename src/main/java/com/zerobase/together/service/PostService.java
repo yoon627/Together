@@ -11,10 +11,14 @@ import com.zerobase.together.type.HistoryTarget;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -25,6 +29,7 @@ public class PostService {
   private final UserRepository userRepository;
   private final HistoryService historyService;
 
+  @Transactional
   public PostDto createPost(PostDto post) {
     UserEntity user = getLoginUser();
     PostEntity postEntity = this.postRepository.save(PostEntity.builder()
@@ -37,6 +42,7 @@ public class PostService {
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .targetId(postEntity.getId())
+        .postContent(this.historyService.shortenContent(postEntity.getDescription()))
         .historyTarget(HistoryTarget.POST)
         .historyAction(HistoryAction.CREATE)
         .build());
@@ -53,15 +59,18 @@ public class PostService {
     return PostDto.toDto(postEntity);
   }
 
-  public List<PostDto> readAllPosts() {
+  public List<PostDto> readPostPage(int pageNum) {
     UserEntity user = getLoginUser();
-    return this.postRepository.getPostEntitiesByCoupleId(user.getCoupleId()).stream()
-        .map(PostDto::toDto).toList();
+    Pageable pageable = PageRequest.of(pageNum, 10);
+    Page<PostEntity> result = this.postRepository.findAllByCoupleIdOrderByCreatedDateTimeDesc(
+        user.getCoupleId(), pageable);
+    return result.stream().map(PostDto::toDto).toList();
   }
 
-  public PostDto updatePost(Long postId, PostDto post) {
+  @Transactional
+  public PostDto updatePost(PostDto post) {
     UserEntity user = getLoginUser();
-    PostEntity postEntity = this.postRepository.findById(postId)
+    PostEntity postEntity = this.postRepository.findById(post.getPostId())
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
     if (postEntity.getUserId() != user.getId()) {
       throw new RuntimeException("포스트 작성자가 아닙니다.");
@@ -72,12 +81,14 @@ public class PostService {
         .coupleId(user.getCoupleId())
         .userId(user.getId())
         .targetId(postEntity.getId())
+        .postContent(this.historyService.shortenContent(postEntity.getDescription()))
         .historyTarget(HistoryTarget.POST)
         .historyAction(HistoryAction.UPDATE)
         .build());
     return PostDto.toDto(this.postRepository.save(postEntity));
   }
 
+  @Transactional
   public void deletePost(Long postId) {
     UserEntity user = getLoginUser();
     PostEntity postEntity = this.postRepository.findById(postId)
@@ -87,13 +98,7 @@ public class PostService {
     }
 
     this.postRepository.deleteById(postId);
-    this.historyService.createHistory(HistoryDto.builder()
-        .coupleId(user.getCoupleId())
-        .userId(user.getId())
-        .targetId(null)
-        .historyTarget(HistoryTarget.POST)
-        .historyAction(HistoryAction.DELETE)
-        .build());
+    this.historyService.deleteHistory(HistoryTarget.POST, postId);
   }
 
   private UserEntity getLoginUser() {
