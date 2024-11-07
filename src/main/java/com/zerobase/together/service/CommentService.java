@@ -10,6 +10,7 @@ import com.zerobase.together.repository.PostRepository;
 import com.zerobase.together.repository.UserRepository;
 import com.zerobase.together.type.HistoryAction;
 import com.zerobase.together.type.HistoryTarget;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +67,11 @@ public class CommentService {
     if (user.getCoupleId() != this.postRepository.findById(postId).get().getCoupleId()) {
       throw new RuntimeException("댓글 조회 권한이 없습니다.");
     }
+
     Pageable pageable = PageRequest.of(pageNum, 10);
-    Page<CommentEntity> result = this.commentRepository.findAllByPostIdOrderByCreatedDateTimeDesc(
-        postId, pageable);
+    Page<CommentEntity> result = this.commentRepository.findAllByPostIdAndDeletedDateTimeOrderByCreatedDateTimeDesc(
+        postId, null, pageable);
+
     return result.stream().map(CommentDto::toDto).toList();
   }
 
@@ -79,6 +82,9 @@ public class CommentService {
         .orElseThrow(() -> new RuntimeException("해당 댓글이 존재하지 않습니다."));
     if (user.getId() != commentEntity.getUserId()) {
       throw new RuntimeException("댓글 수정 권한이 없습니다.");
+    }
+    if (commentEntity.getDeletedDateTime() != null) {
+      throw new RuntimeException("삭제된 댓글입니다.");
     }
     commentEntity.setDescription(request.getDescription());
     PostEntity postEntity = this.postRepository.findById(commentEntity.getPostId())
@@ -104,9 +110,22 @@ public class CommentService {
     if (user.getId() != commentEntity.getUserId()) {
       throw new RuntimeException("댓글 삭제 권한이 없습니다.");
     }
-
-    this.commentRepository.deleteById(commentId);
-    this.historyService.deleteHistory(HistoryTarget.COMMENT, commentId);
+    if (commentEntity.getDeletedDateTime() != null) {
+      throw new RuntimeException("삭제된 댓글입니다.");
+    }
+    PostEntity postEntity = this.postRepository.findById(commentEntity.getPostId())
+        .orElseThrow(() -> new RuntimeException("해당 게시물이 존재하지 않습니다."));
+    commentEntity.setDeletedDateTime(LocalDateTime.now());
+    this.commentRepository.save(commentEntity);
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(commentEntity.getId())
+        .postContent(historyService.shortenContent(postEntity.getDescription()))
+        .commentContent(historyService.shortenContent(commentEntity.getDescription()))
+        .historyTarget(HistoryTarget.COMMENT)
+        .historyAction(HistoryAction.DELETE)
+        .build());
   }
 
   private UserEntity getLoginUser() {

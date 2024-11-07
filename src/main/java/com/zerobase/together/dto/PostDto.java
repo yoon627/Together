@@ -22,6 +22,7 @@ public class PostDto {
   private String description;
   private LocalDateTime createdDateTime;
   private LocalDateTime modifiedDateTime;
+  private LocalDateTime deletedDateTime;
 
   public static PostDto toDto(PostEntity postEntity) {
     return PostDto.builder()
@@ -32,6 +33,7 @@ public class PostDto {
         .description(postEntity.getDescription())
         .createdDateTime(postEntity.getCreatedDateTime())
         .modifiedDateTime(postEntity.getModifiedDateTime())
+        .deletedDateTime(postEntity.getDeletedDateTime())
         .build();
   }
 

@@ -22,6 +22,7 @@ public class CommentDto {
   private String description;
   private LocalDateTime createdDateTime;
   private LocalDateTime modifiedDateTime;
+  private LocalDateTime deletedDateTime;
 
   public static CommentDto toDto(CommentEntity commentEntity) {
     return CommentDto.builder()
@@ -32,6 +33,7 @@ public class CommentDto {
         .description(commentEntity.getDescription())
         .createdDateTime(commentEntity.getCreatedDateTime())
         .modifiedDateTime(commentEntity.getModifiedDateTime())
+        .deletedDateTime(commentEntity.getDeletedDateTime())
         .build();
   }
 }

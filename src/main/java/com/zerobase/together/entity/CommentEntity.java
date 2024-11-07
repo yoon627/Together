@@ -39,4 +39,5 @@ public class CommentEntity {
   private LocalDateTime createdDateTime;
   @LastModifiedDate
   private LocalDateTime modifiedDateTime;
+  private LocalDateTime deletedDateTime;
 }

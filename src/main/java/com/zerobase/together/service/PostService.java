@@ -8,6 +8,7 @@ import com.zerobase.together.repository.PostRepository;
 import com.zerobase.together.repository.UserRepository;
 import com.zerobase.together.type.HistoryAction;
 import com.zerobase.together.type.HistoryTarget;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,14 +57,17 @@ public class PostService {
     if (postEntity.getCoupleId() != user.getCoupleId()) {
       throw new RuntimeException("포스트를 읽을 권한이 없습니다.");
     }
+    if (postEntity.getDeletedDateTime() != null) {
+      throw new RuntimeException("삭제된 게시글입니다.");
+    }
     return PostDto.toDto(postEntity);
   }
 
   public List<PostDto> readPostPage(int pageNum) {
     UserEntity user = getLoginUser();
     Pageable pageable = PageRequest.of(pageNum, 10);
-    Page<PostEntity> result = this.postRepository.findAllByCoupleIdOrderByCreatedDateTimeDesc(
-        user.getCoupleId(), pageable);
+    Page<PostEntity> result = this.postRepository.findAllByCoupleIdAndDeletedDateTimeOrderByCreatedDateTimeDesc(
+        user.getCoupleId(), null, pageable);
     return result.stream().map(PostDto::toDto).toList();
   }
 
@@ -74,6 +78,9 @@ public class PostService {
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
     if (postEntity.getUserId() != user.getId()) {
       throw new RuntimeException("포스트 작성자가 아닙니다.");
+    }
+    if (postEntity.getDeletedDateTime() != null) {
+      throw new RuntimeException("삭제된 게시글입니다.");
     }
     postEntity.setImgUrl(post.getImgUrl());
     postEntity.setDescription(post.getDescription());
@@ -96,9 +103,19 @@ public class PostService {
     if (user.getId() != postEntity.getUserId()) {
       throw new RuntimeException("포스트 작성자가 아닙니다.");
     }
-
-    this.postRepository.deleteById(postId);
-    this.historyService.deleteHistory(HistoryTarget.POST, postId);
+    if (postEntity.getDeletedDateTime() != null) {
+      throw new RuntimeException("삭제된 게시글입니다.");
+    }
+    postEntity.setDeletedDateTime(LocalDateTime.now());
+    this.postRepository.save(postEntity);
+    this.historyService.createHistory(HistoryDto.builder()
+        .coupleId(user.getCoupleId())
+        .userId(user.getId())
+        .targetId(postEntity.getId())
+        .postContent(this.historyService.shortenContent(postEntity.getDescription()))
+        .historyTarget(HistoryTarget.POST)
+        .historyAction(HistoryAction.DELETE)
+        .build());
   }
 
   private UserEntity getLoginUser() {

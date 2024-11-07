@@ -5,7 +5,6 @@ import com.zerobase.together.entity.HistoryEntity;
 import com.zerobase.together.entity.UserEntity;
 import com.zerobase.together.repository.HistoryRepository;
 import com.zerobase.together.repository.UserRepository;
-import com.zerobase.together.type.HistoryTarget;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,10 +43,6 @@ public class HistoryService {
         user.getCoupleId(),
         pageable);
     return result.stream().map(HistoryDto::toDto).toList();
-  }
-
-  public void deleteHistory(HistoryTarget historyTarget, Long targetId) {
-    this.historyRepository.deleteAllByHistoryTargetAndTargetId(historyTarget, targetId);
   }
 
   public String shortenContent(String content) {
