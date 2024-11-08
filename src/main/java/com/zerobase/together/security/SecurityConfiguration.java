@@ -20,35 +20,36 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final JwtAuthenticationFilter authenticationFilter;
+  private final JwtAuthenticationFilter authenticationFilter;
 
-    /**
-     * 보안을 체크하는 필터
-     *
-     * @param http
-     * @return
-     * @throws Exception
-     */
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session
-                        -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(
-                        authz -> authz.requestMatchers("/auth/signup","/auth/signupWithPartner", "/auth/signin").permitAll()
-                                .anyRequest().authenticated())
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
-    }
+  /**
+   * 보안을 체크하는 필터
+   *
+   * @param http
+   * @return
+   * @throws Exception
+   */
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(session
+            -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(
+            authz -> authz.requestMatchers("/auth/signup", "/auth/signupWithPartner",
+                    "/auth/signin", "/chat", "/chat.html", "/ws/**", "/js/**").permitAll()
+                .anyRequest().authenticated())
+        .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+    return http.build();
+  }
 
-    /**
-     * localhost에서 오는 요청을 승인하는 메서드
-     *
-     * @return
-     */
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("localhost/**");
-    }
+  /**
+   * localhost에서 오는 요청을 승인하는 메서드
+   *
+   * @return
+   */
+  @Bean
+  public WebSecurityCustomizer webSecurityCustomizer() {
+    return (web) -> web.ignoring().requestMatchers("localhost/**");
+  }
 }
