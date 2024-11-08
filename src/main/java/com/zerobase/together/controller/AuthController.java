@@ -53,7 +53,7 @@ public class AuthController {
   @PostMapping("/signin")
   public ResponseEntity<?> signin(@RequestBody AuthDto.SignIn request) {
     var user = this.userService.authenticate(request);
-    var token = this.tokenProvider.generateToken(user.getUserId());
+    var token = this.tokenProvider.generateToken(user.getUsername());
     return ResponseEntity.ok(token);
   }
 }

@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -18,23 +19,25 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Builder
 @Getter
+@Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "user")
+@Entity(name = "comment")
 @EntityListeners(AuditingEntityListener.class)
-public class UserEntity {
+public class CommentEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+  private Long postId;
   private Long coupleId;
-  @Column(unique = true, length = 32)
-  private String username;
-  @Column(length = 64)
-  private String password;
+  private Long userId;
+  @Column(columnDefinition = "TEXT")
+  private String description;
   @CreatedDate
   private LocalDateTime createdDateTime;
   @LastModifiedDate
   private LocalDateTime modifiedDateTime;
+  private LocalDateTime deletedDateTime;
 }

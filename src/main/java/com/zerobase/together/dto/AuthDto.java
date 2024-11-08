@@ -9,14 +9,14 @@ public class AuthDto {
   @Data
   public static class SignIn {
 
-    private String userId;
+    private String username;
     private String password;
   }
 
   @Data
   public static class SignUp {
 
-    private String userId;
+    private String username;
     private String password;
     private Long coupleId;
     private LocalDateTime createdDate;
@@ -25,12 +25,11 @@ public class AuthDto {
 
     public UserEntity toEntity() {
       return UserEntity.builder()
-          .userId(this.userId)
+          .username(this.username)
           .password(this.password)
           .coupleId(this.coupleId)
           .createdDateTime(this.createdDate)
           .modifiedDateTime(this.modifiedDate)
-          .removedDateTime(this.removedDate)
           .build();
     }
   }
@@ -38,9 +37,9 @@ public class AuthDto {
   @Data
   public static class SignUpWithPartner {
 
-    private String userId;
+    private String username;
     private String password;
-    private String partnerId;
+    private String partnername;
     private Long coupleId;
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
@@ -49,12 +48,11 @@ public class AuthDto {
 
     public UserEntity toEntity() {
       return UserEntity.builder()
-          .userId(this.userId)
+          .username(this.username)
           .password(this.password)
           .coupleId(this.coupleId)
           .createdDateTime(this.createdDate)
           .modifiedDateTime(this.modifiedDate)
-          .removedDateTime(this.removedDate)
           .build();
     }
   }
