@@ -92,7 +92,7 @@ public class TokenProvider {
     try {
       return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     } catch (ExpiredJwtException e) {
-      return e.getClaims();
+      throw new RuntimeException("토큰 기간이 만료되었습니다.");
     }
   }
 
