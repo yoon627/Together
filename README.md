@@ -26,7 +26,7 @@
   * 본인과 연인관계에 있는 사람이 게시글을 작성하거나 댓글을 작성한 기록들을 조회할 수 있다.
 
 ## ERD
-![together erd](https://github.com/user-attachments/assets/fa45eed4-8d76-40b2-8a0f-92dc10d02f2d)
+![Together (7)](https://github.com/user-attachments/assets/51e9156a-10d7-453f-bd65-373dcef22aff)
 
 ## Trouble Shooting
 
