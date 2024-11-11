@@ -17,6 +17,7 @@ public class ChatDto {
 
   private Long coupleId;
   private String senderId;
+  private String imgUrl;
   private String content;
   private LocalDateTime createdDateTime;
 
@@ -24,6 +25,7 @@ public class ChatDto {
     return ChatDto.builder()
         .coupleId(chatEntity.getCoupleId())
         .senderId(chatEntity.getSenderId())
+        .imgUrl(chatEntity.getImgUrl())
         .content(chatEntity.getContent())
         .createdDateTime(chatEntity.getCreatedDateTime())
         .build();

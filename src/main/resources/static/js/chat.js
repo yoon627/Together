@@ -26,7 +26,7 @@ function sendMessage() {
   if (stompClient && messageContent) {
     stompClient.send("/app/send", {},
         JSON.stringify(
-            {coupleId: coupleId, senderId: "user1", content: messageContent}));
+            {coupleId: coupleId, senderId: "user1", content: messageContent, imgUrl:null}));
     document.getElementById("message").value = ''; // 전송 후 입력창 초기화
   }
 }

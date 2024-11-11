@@ -1,5 +1,6 @@
 package com.zerobase.together.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +29,8 @@ public class ChatEntity {
   private Long id;
   private Long coupleId;
   private String senderId;
+  @Column(length = 512)
+  private String imgUrl;
   private String content;
   @CreatedDate
   private LocalDateTime createdDateTime;
