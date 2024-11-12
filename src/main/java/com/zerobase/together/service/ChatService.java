@@ -4,7 +4,6 @@ import com.zerobase.together.dto.ChatDto;
 import com.zerobase.together.dto.UserDto;
 import com.zerobase.together.entity.ChatEntity;
 import com.zerobase.together.repository.ChatRepository;
-import com.zerobase.together.repository.PhotoRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChatService {
 
   private final ChatRepository chatRepository;
-  private final PhotoService photoService;
 
   @Transactional
   public ChatDto saveChat(ChatDto chatDto) {

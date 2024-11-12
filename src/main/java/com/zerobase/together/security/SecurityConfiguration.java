@@ -37,7 +37,7 @@ public class SecurityConfiguration {
             -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             authz -> authz.requestMatchers("/auth/signup", "/auth/signupWithPartner",
-                    "/auth/signin", "/chat", "/chat.html", "/ws/**", "/js/**").permitAll()
+                    "/auth/signin", "/chat", "/chat.html", "/ws/**", "/js/**", "/photo").permitAll()
                 .anyRequest().authenticated())
         .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
     return http.build();

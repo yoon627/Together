@@ -2,6 +2,7 @@ package com.zerobase.together.controller;
 
 import com.zerobase.together.dto.ChatDto;
 import com.zerobase.together.service.ChatService;
+import com.zerobase.together.service.PhotoService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ public class ChatController {
 
   private final SimpMessagingTemplate messagingTemplate;
   private final ChatService chatService;
+  private final PhotoService photoService;
 
   @MessageMapping("/send") // 클라이언트가 /app/send로 보낸 메시지를 수신
   @SendTo("/topic/messages") // 구독자에게 /topic/messages로 메시지를 브로드캐스트
