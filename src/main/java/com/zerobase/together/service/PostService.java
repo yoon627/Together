@@ -2,10 +2,9 @@ package com.zerobase.together.service;
 
 import com.zerobase.together.dto.HistoryDto;
 import com.zerobase.together.dto.PostDto;
+import com.zerobase.together.dto.UserDto;
 import com.zerobase.together.entity.PostEntity;
-import com.zerobase.together.entity.UserEntity;
 import com.zerobase.together.repository.PostRepository;
-import com.zerobase.together.repository.UserRepository;
 import com.zerobase.together.type.HistoryAction;
 import com.zerobase.together.type.HistoryTarget;
 import java.time.LocalDateTime;
@@ -15,9 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
   private final PostRepository postRepository;
-  private final UserRepository userRepository;
   private final HistoryService historyService;
+  private final UserService userService;
 
   @Transactional
   public PostDto createPost(PostDto post) {
-    UserEntity user = getLoginUser();
+    UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.save(PostEntity.builder()
         .coupleId(user.getCoupleId())
         .userId(user.getId())
@@ -51,7 +47,7 @@ public class PostService {
   }
 
   public PostDto readPost(Long postId) {
-    UserEntity user = getLoginUser();
+    UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(postId)
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
     if (postEntity.getCoupleId() != user.getCoupleId()) {
@@ -64,7 +60,7 @@ public class PostService {
   }
 
   public List<PostDto> readPostPage(int pageNum) {
-    UserEntity user = getLoginUser();
+    UserDto user = this.userService.getLoginUser();
     Pageable pageable = PageRequest.of(pageNum, 10);
     Page<PostEntity> result = this.postRepository.findAllByCoupleIdAndDeletedDateTimeOrderByCreatedDateTimeDesc(
         user.getCoupleId(), null, pageable);
@@ -73,7 +69,7 @@ public class PostService {
 
   @Transactional
   public PostDto updatePost(PostDto post) {
-    UserEntity user = getLoginUser();
+    UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(post.getPostId())
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
     if (postEntity.getUserId() != user.getId()) {
@@ -97,7 +93,7 @@ public class PostService {
 
   @Transactional
   public void deletePost(Long postId) {
-    UserEntity user = getLoginUser();
+    UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(postId)
         .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
     if (user.getId() != postEntity.getUserId()) {
@@ -116,12 +112,5 @@ public class PostService {
         .historyTarget(HistoryTarget.POST)
         .historyAction(HistoryAction.DELETE)
         .build());
-  }
-
-  private UserEntity getLoginUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-    return this.userRepository.findByUsername(userDetails.getUsername())
-        .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다."));
   }
 }

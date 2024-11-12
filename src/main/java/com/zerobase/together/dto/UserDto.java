@@ -18,12 +18,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Builder
 public class UserDto implements UserDetails {
 
+  private Long id;
   private Long coupleId;
   private String username;
 
 
   public static UserDto fromEntity(UserEntity userEntity) {
     return UserDto.builder()
+        .id(userEntity.getId())
         .coupleId(userEntity.getCoupleId())
         .username(userEntity.getUsername())
         .build();

@@ -9,6 +9,8 @@ import com.zerobase.together.repository.CoupleRepository;
 import com.zerobase.together.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -58,11 +60,14 @@ public class UserService implements UserDetailsService {
     UserEntity partner = this.userRepository.findByUsername(user.getPartnername())
         .orElseThrow(
             () -> new UsernameNotFoundException("파트너가 존재하지 않습니다. -> " + user.getPartnername()));
+    CoupleEntity coupleEntity = this.coupleRepository.findById(partner.getCoupleId())
+        .orElseThrow(() -> new RuntimeException("존재하지 않는 커플아이디입니다."));
+    if (coupleEntity.isAuthorized()) {
+      throw new RuntimeException("상대방은 이미 커플입니다.");
+    }
     user.setCoupleId(partner.getCoupleId());
     user.setPassword(this.passwordEncoder.encode(user.getPassword()));
 
-    CoupleEntity coupleEntity = coupleRepository.findById(partner.getCoupleId())
-        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getCoupleId()));
     coupleEntity.setAuthorized(true);
     coupleRepository.save(coupleEntity);
 
@@ -97,5 +102,32 @@ public class UserService implements UserDetailsService {
   public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
     return UserDto.fromEntity(this.userRepository.findByUsername(userId)
         .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다.")));
+  }
+
+  public UserDto getLoginUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    return UserDto.fromEntity(this.userRepository.findByUsername(userDetails.getUsername())
+        .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다.")));
+  }
+
+  public String getUsername() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    return userDetails.getUsername();
+  }
+
+  public Long getCoupleId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDto userDto = (UserDto) authentication.getPrincipal();
+    return userDto.getCoupleId();
+  }
+
+  public String getPartnerName(String username) {
+    UserEntity user = this.userRepository.findByUsername(username)
+        .orElseThrow(() -> new RuntimeException("해당 유저가 존재하지 않습니다."));
+    UserEntity partner = this.userRepository.findByCoupleIdAndUsernameNot(user.getCoupleId(),
+        username).orElseThrow(() -> new RuntimeException("파트너가 존재하지 않습니다."));
+    return partner.getUsername();
   }
 }
