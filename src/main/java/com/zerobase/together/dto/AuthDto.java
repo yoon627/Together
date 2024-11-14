@@ -2,11 +2,13 @@ package com.zerobase.together.dto;
 
 import com.zerobase.together.entity.UserEntity;
 import java.time.LocalDateTime;
+import lombok.Builder;
 import lombok.Data;
 
 public class AuthDto {
 
   @Data
+  @Builder
   public static class SignIn {
 
     private String username;
@@ -14,6 +16,7 @@ public class AuthDto {
   }
 
   @Data
+  @Builder
   public static class SignUp {
 
     private String username;
@@ -35,6 +38,7 @@ public class AuthDto {
   }
 
   @Data
+  @Builder
   public static class SignUpWithPartner {
 
     private String username;

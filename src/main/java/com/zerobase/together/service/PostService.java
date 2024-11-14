@@ -1,9 +1,14 @@
 package com.zerobase.together.service;
 
+import static com.zerobase.together.type.ErrorCode.INVALID_POST;
+import static com.zerobase.together.type.ErrorCode.UNAUTHORIZED;
+
 import com.zerobase.together.dto.HistoryDto;
 import com.zerobase.together.dto.PostDto;
 import com.zerobase.together.dto.UserDto;
 import com.zerobase.together.entity.PostEntity;
+import com.zerobase.together.exception.AuthorityException;
+import com.zerobase.together.exception.CustomException;
 import com.zerobase.together.repository.PostRepository;
 import com.zerobase.together.type.HistoryAction;
 import com.zerobase.together.type.HistoryTarget;
@@ -49,12 +54,12 @@ public class PostService {
   public PostDto readPost(Long postId) {
     UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
+        .orElseThrow(() -> new CustomException(INVALID_POST));
     if (postEntity.getCoupleId() != user.getCoupleId()) {
-      throw new RuntimeException("포스트를 읽을 권한이 없습니다.");
+      throw new AuthorityException(UNAUTHORIZED);
     }
     if (postEntity.getDeletedDateTime() != null) {
-      throw new RuntimeException("삭제된 게시글입니다.");
+      throw new CustomException(INVALID_POST);
     }
     return PostDto.toDto(postEntity);
   }
@@ -71,12 +76,12 @@ public class PostService {
   public PostDto updatePost(PostDto post) {
     UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(post.getPostId())
-        .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
+        .orElseThrow(() -> new CustomException(INVALID_POST));
     if (postEntity.getUserId() != user.getId()) {
-      throw new RuntimeException("포스트 작성자가 아닙니다.");
+      throw new AuthorityException(UNAUTHORIZED);
     }
     if (postEntity.getDeletedDateTime() != null) {
-      throw new RuntimeException("삭제된 게시글입니다.");
+      throw new CustomException(INVALID_POST);
     }
     postEntity.setImgUrl(post.getImgUrl());
     postEntity.setDescription(post.getDescription());
@@ -95,12 +100,12 @@ public class PostService {
   public void deletePost(Long postId) {
     UserDto user = this.userService.getLoginUser();
     PostEntity postEntity = this.postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("해당 포스트가 존재하지 않습니다."));
+        .orElseThrow(() -> new CustomException(INVALID_POST));
     if (user.getId() != postEntity.getUserId()) {
-      throw new RuntimeException("포스트 작성자가 아닙니다.");
+      throw new AuthorityException(UNAUTHORIZED);
     }
     if (postEntity.getDeletedDateTime() != null) {
-      throw new RuntimeException("삭제된 게시글입니다.");
+      throw new CustomException(INVALID_POST);
     }
     postEntity.setDeletedDateTime(LocalDateTime.now());
     this.postRepository.save(postEntity);
