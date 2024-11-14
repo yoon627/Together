@@ -43,6 +43,9 @@ public class CommentService {
     if (user.getCoupleId() != postEntity.getCoupleId()) {
       throw new AuthorityException(UNAUTHORIZED);
     }
+    if (postEntity.getDeletedDateTime() != null) {
+      throw new CustomException(INVALID_POST);
+    }
 
     CommentEntity commentEntity = this.commentRepository.save(CommentEntity.builder()
         .postId(request.getPostId())
