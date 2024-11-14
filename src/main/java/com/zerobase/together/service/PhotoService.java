@@ -78,8 +78,10 @@ public class PhotoService {
         .map(photoEntity -> PhotoDto.toDto(photoEntity, urlPrefix));
   }
 
+  @Transactional
   public void delete(String fileUrl) {
     this.amazonS3Client.deleteObject(bucket, fileUrl.substring(urlPrefix.length()));
+    this.photoRepository.deleteByImgUrl(fileUrl.substring(urlPrefix.length()));
   }
 
 }
