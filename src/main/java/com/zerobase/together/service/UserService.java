@@ -1,14 +1,25 @@
 package com.zerobase.together.service;
 
+import static com.zerobase.together.type.ErrorCode.INVALID_COUPLE_ID;
+import static com.zerobase.together.type.ErrorCode.INVALID_PARTNER_NAME;
+import static com.zerobase.together.type.ErrorCode.INVALID_USER_NAME;
+import static com.zerobase.together.type.ErrorCode.PARTNER_ALREADY_COUPLE;
+import static com.zerobase.together.type.ErrorCode.PARTNER_NOT_FOUND;
+import static com.zerobase.together.type.ErrorCode.PASSWORD_UN_MATCH;
+import static com.zerobase.together.type.ErrorCode.USERNAME_ALREADY_EXISTS;
+
 import com.zerobase.together.dto.AuthDto;
 import com.zerobase.together.dto.AuthDto.SignUpWithPartner;
 import com.zerobase.together.dto.UserDto;
 import com.zerobase.together.entity.CoupleEntity;
 import com.zerobase.together.entity.UserEntity;
+import com.zerobase.together.exception.CustomException;
 import com.zerobase.together.repository.CoupleRepository;
 import com.zerobase.together.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,7 +44,7 @@ public class UserService implements UserDetailsService {
   public UserDto register(AuthDto.SignUp user) {
 
     if (this.userRepository.existsByUsername(user.getUsername())) {
-      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUsername());
+      throw new CustomException(USERNAME_ALREADY_EXISTS);
     }
 
     CoupleEntity coupleEntity = coupleRepository.save(new CoupleEntity());
@@ -52,17 +63,20 @@ public class UserService implements UserDetailsService {
    */
   public UserDto registerWithPartner(SignUpWithPartner user) {
     if (this.userRepository.existsByUsername(user.getUsername())) {
-      throw new RuntimeException("이미 사용중인 아이디 입니다. -> " + user.getUsername());
+      throw new CustomException(USERNAME_ALREADY_EXISTS);
     }
 
     UserEntity partner = this.userRepository.findByUsername(user.getPartnername())
         .orElseThrow(
-            () -> new UsernameNotFoundException("파트너가 존재하지 않습니다. -> " + user.getPartnername()));
+            () -> new CustomException(INVALID_PARTNER_NAME));
+    CoupleEntity coupleEntity = this.coupleRepository.findById(partner.getCoupleId())
+        .orElseThrow(() -> new CustomException(INVALID_COUPLE_ID));
+    if (coupleEntity.isAuthorized()) {
+      throw new CustomException(PARTNER_ALREADY_COUPLE);
+    }
     user.setCoupleId(partner.getCoupleId());
     user.setPassword(this.passwordEncoder.encode(user.getPassword()));
 
-    CoupleEntity coupleEntity = coupleRepository.findById(partner.getCoupleId())
-        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getCoupleId()));
     coupleEntity.setAuthorized(true);
     coupleRepository.save(coupleEntity);
 
@@ -77,17 +91,17 @@ public class UserService implements UserDetailsService {
    */
   public UserDto authenticate(AuthDto.SignIn loginUser) {
     var user = this.userRepository.findByUsername(loginUser.getUsername())
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 ID 입니다."));
+        .orElseThrow(() -> new CustomException(INVALID_USER_NAME));
 
     if (!this.passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
-      throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+      throw new CustomException(PASSWORD_UN_MATCH);
     }
 
     CoupleEntity coupleEntity = coupleRepository.findById(user.getCoupleId())
-        .orElseThrow(() -> new RuntimeException("커플아이디가 존재하지 않습니다. -> " + user.getCoupleId()));
+        .orElseThrow(() -> new CustomException(INVALID_COUPLE_ID));
 
     if (!coupleEntity.isAuthorized()) {
-      throw new RuntimeException("상대방이 가입하지 않았습니다.");
+      throw new CustomException(PARTNER_NOT_FOUND);
     }
 
     return UserDto.fromEntity(user);
@@ -96,6 +110,33 @@ public class UserService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
     return UserDto.fromEntity(this.userRepository.findByUsername(userId)
-        .orElseThrow(() -> new RuntimeException("존재하지 않는 유저입니다.")));
+        .orElseThrow(() -> new CustomException(INVALID_USER_NAME)));
+  }
+
+  public UserDto getLoginUser() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    return UserDto.fromEntity(this.userRepository.findByUsername(userDetails.getUsername())
+        .orElseThrow(() -> new CustomException(INVALID_USER_NAME)));
+  }
+
+  public String getUsername() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+    return userDetails.getUsername();
+  }
+
+  public Long getCoupleId() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserDto userDto = (UserDto) authentication.getPrincipal();
+    return userDto.getCoupleId();
+  }
+
+  public String getPartnerName(String username) {
+    UserEntity user = this.userRepository.findByUsername(username)
+        .orElseThrow(() -> new CustomException(INVALID_USER_NAME));
+    UserEntity partner = this.userRepository.findByCoupleIdAndUsernameNot(user.getCoupleId(),
+        username).orElseThrow(() -> new CustomException(PARTNER_NOT_FOUND));
+    return partner.getUsername();
   }
 }
