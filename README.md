@@ -24,6 +24,12 @@
   * 로그인한 사용자는 본인과 연인관계에 있는 사람의 글에 댓글을 조회할 수 있다.
 * 활동 로그 조회 기능
   * 본인과 연인관계에 있는 사람이 게시글을 작성하거나 댓글을 작성한 기록들을 조회할 수 있다.
+* 접속확인
+  * 본인과 연인관계에 있는 사람의 접속 여부를 확인할 수 있다.
+* 채팅
+  * 본인과 연인관계에 있는 사람과 채팅을 할 수 있다.
+* 공유 앨범
+  * 본인과 연인관계에 있는 사람과 앨범을 공유할 수 있다.
 
 ## ERD
 ![Together (7)](https://github.com/user-attachments/assets/51e9156a-10d7-453f-bd65-373dcef22aff)
@@ -33,11 +39,3 @@
 ## 기술스택
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white) 
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
-
-## TO-DO
-* 접속확인
-  * 본인과 연인관계에 있는 사람의 접속 여부를 확인할 수 있다.
-* 채팅
-  * 본인과 연인관계에 있는 사람과 채팅을 할 수 있다.
-* 공유 앨범
-  * 본인과 연인관계에 있는 사람과 앨범을 공유할 수 있다.
